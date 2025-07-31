@@ -1,48 +1,57 @@
-const API_URL = "http://localhost:3000/api/Route";
-
-async function loadTasks() {
-  const res = await fetch(API_URL);
-  const tasks = await res.json();
-  const list = document.getElementById("taskList");
-  list.innerHTML = "";
-  tasks.forEach((task) => {
-    const li = document.createElement("li");
-    li.textContent = task.description + (task.completed ? " ✅" : "");
-    if (!task.completed) {
-      const doneBtn = document.createElement("button");
-      doneBtn.textContent = "Done";
-      doneBtn.onclick = () => markComplete(task._id);
-      li.appendChild(doneBtn);
-    }
-    const delBtn = document.createElement("button");
-    delBtn.textContent = "Delete";
-    delBtn.onclick = () => deleteTask(task._id);
-    li.appendChild(delBtn);
-    list.appendChild(li);
-  });
-}
-
-async function addTask() {
+function addTask() {
   const input = document.getElementById("taskInput");
-  const desc = input.value.trim();
-  if (!desc) return;
-  await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ description: desc }),
-  });
+  const taskText = input.value.trim();
+  if (taskText === "") return;
+
+  const li = document.createElement("li");
+
+  const taskSpan = document.createElement("span");
+  taskSpan.textContent = taskText;
+
+  // Nút Complete
+  const completeBtn = document.createElement("button");
+  completeBtn.textContent = "✅";
+  completeBtn.classList.add("complete-btn");
+  completeBtn.onclick = () => {
+    taskSpan.classList.toggle("completed");
+    showSuccess("Task marked as completed!");
+  };
+
+  // Nút Delete
+  const deleteBtn = document.createElement("button");
+  deleteBtn.textContent = "🗑️";
+  deleteBtn.classList.add("delete-btn");
+  deleteBtn.onclick = () => {
+    li.remove();
+  };
+
+  const buttonGroup = document.createElement("div");
+  buttonGroup.classList.add("task-buttons");
+  buttonGroup.appendChild(completeBtn);
+  buttonGroup.appendChild(deleteBtn);
+
+  li.appendChild(taskSpan);
+  li.appendChild(buttonGroup);
+
+  document.getElementById("taskList").appendChild(li);
   input.value = "";
-  loadTasks();
 }
 
-async function markComplete(id) {
-  await fetch(`${API_URL}/${id}`, { method: "PUT" });
-  loadTasks();
+function showSuccess(message) {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = message;
+
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add("show");
+  }, 100);
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 500);
+  }, 2000);
 }
 
-async function deleteTask(id) {
-  await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-  loadTasks();
-}
-
-loadTasks();
+const API_URL = "https://lab03-be.onrender.com/api/Route";
